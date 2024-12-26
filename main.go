@@ -9,10 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-  	"ecommerce/handlers"
-	"ecommerce/middleware"
-	
-
+	"E-Commerce/handlers"
+	"E-Commerce/middleware"
 )
 
 var (
@@ -23,6 +21,7 @@ var (
 )
 
 func main() {
+	// Connect to MongoDB
 	var err error
 	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
@@ -35,13 +34,17 @@ func main() {
 
 	log.Println("Connected to MongoDB")
 
+	// Collections
 	productsCol := client.Database(databaseName).Collection(productsColName)
 	usersCol := client.Database(databaseName).Collection(usersColName)
 
+	// Router
 	r := mux.NewRouter()
 
+	// Middleware
 	r.Use(middleware.LoggingMiddleware)
 
+	// Routes
 	r.HandleFunc("/products", handlers.GetProductsHandler(productsCol)).Methods(http.MethodGet)
 	r.HandleFunc("/products", handlers.CreateProductHandler(productsCol)).Methods(http.MethodPost)
 	r.HandleFunc("/users", handlers.GetUsersHandler(usersCol)).Methods(http.MethodGet)
@@ -49,6 +52,7 @@ func main() {
 	r.HandleFunc("/cart", handlers.GetCartHandler(usersCol)).Methods(http.MethodGet)
 	r.HandleFunc("/cart", handlers.AddToCartHandler(usersCol, productsCol)).Methods(http.MethodPost)
 
+	// Start Server
 	log.Println("Server running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
