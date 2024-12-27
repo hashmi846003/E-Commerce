@@ -45,18 +45,19 @@ func main() {
 	r.Use(middleware.LoggingMiddleware)
 
 	// Routes
-	// Serve static files
-    
-	
-	
-	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/"))))
-
 	r.HandleFunc("/products", handlers.GetProductsHandler(productsCol)).Methods(http.MethodGet)
 	r.HandleFunc("/products", handlers.CreateProductHandler(productsCol)).Methods(http.MethodPost)
 	r.HandleFunc("/users", handlers.GetUsersHandler(usersCol)).Methods(http.MethodGet)
 	r.HandleFunc("/users", handlers.CreateUserHandler(usersCol)).Methods(http.MethodPost)
 	r.HandleFunc("/cart", handlers.GetCartHandler(usersCol)).Methods(http.MethodGet)
 	r.HandleFunc("/cart", handlers.AddToCartHandler(usersCol, productsCol)).Methods(http.MethodPost)
+	// Routes
+	r.HandleFunc("/signup", handlers.SignupHandler(usersCol)).Methods(http.MethodPost)
+	r.HandleFunc("/login", handlers.LoginHandler(usersCol)).Methods(http.MethodPost)
+	r.HandleFunc("/dashboard", handlers.DashboardHandler()).Methods(http.MethodGet)
+
+	// Serve static files
+	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/"))))
 
 	// Start Server
 	log.Println("Server running on port 8080")
