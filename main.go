@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	client         *mongo.Client
-	databaseName   = "ecommerce"
+	client          *mongo.Client
+	databaseName    = "ecommerce"
 	productsColName = "products"
 	usersColName    = "users"
 )
@@ -44,20 +44,40 @@ func main() {
 	// Middleware
 	r.Use(middleware.LoggingMiddleware)
 
-	// Routes
+	// Routes for Products and Cart
 	r.HandleFunc("/products", handlers.GetProductsHandler(productsCol)).Methods(http.MethodGet)
 	r.HandleFunc("/products", handlers.CreateProductHandler(productsCol)).Methods(http.MethodPost)
-	r.HandleFunc("/users", handlers.GetUsersHandler(usersCol)).Methods(http.MethodGet)
-	r.HandleFunc("/users", handlers.CreateUserHandler(usersCol)).Methods(http.MethodPost)
 	r.HandleFunc("/cart", handlers.GetCartHandler(usersCol)).Methods(http.MethodGet)
 	r.HandleFunc("/cart", handlers.AddToCartHandler(usersCol, productsCol)).Methods(http.MethodPost)
-	// Routes
+
+	// User routes
+	r.HandleFunc("/users", handlers.GetUsersHandler(usersCol)).Methods(http.MethodGet)
+	r.HandleFunc("/users", handlers.CreateUserHandler(usersCol)).Methods(http.MethodPost)
+
+	// Authentication routes
 	r.HandleFunc("/signup", handlers.SignupHandler(usersCol)).Methods(http.MethodPost)
 	r.HandleFunc("/login", handlers.LoginHandler(usersCol)).Methods(http.MethodPost)
+
+	// Protected route
 	r.HandleFunc("/dashboard", handlers.DashboardHandler()).Methods(http.MethodGet)
 
-	// Serve static files
-	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/"))))
+	// Serve the main page (index.html) and auth pages (auth.html)
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html")
+	}).Methods(http.MethodGet)
+
+	// Serve Signup page
+	r.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/auth.html")
+	}).Methods(http.MethodGet)
+
+	// Serve Login page
+	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/auth.html")
+	}).Methods(http.MethodGet)
+
+	// Serve static files (CSS, JS, etc.)
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
 	// Start Server
 	log.Println("Server running on port 8080")
